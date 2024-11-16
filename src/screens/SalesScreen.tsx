@@ -1,53 +1,95 @@
-import React from 'react';
-import { View, Text, FlatList, Button, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, Button, TextInput, StyleSheet } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { useSales } from '../context/SalesContext';
+import { useInventory } from '../context/InventoryContext';
 
-// Placeholder para os dados do histórico de vendas
-const salesData = [
-  { id: '1', item: 'Amigurumi de Coelho', price: 50.0, date: '2024-11-10' },
-  { id: '2', item: 'Chaveiro de Coração', price: 15.0, date: '2024-11-10' },
-  { id: '3', item: 'Amigurumi de Ursinho', price: 45.0, date: '2024-11-10' },
-];
+export default function SalesScreen() {
+  const { sales, addSale } = useSales();
+  const { items, updateItemQuantity } = useInventory();
+  const [selectedItem, setSelectedItem] = useState('');
+  const [quantity, setQuantity] = useState('');
+  
+  const [paymentStatus, setPaymentStatus] = useState<'Não pago' | '50% pago' | 'Totalmente pago'>('Não pago');
+  const [productionStatus, setProductionStatus] = useState<'Não iniciada' | 'Em produção' | 'Pronta'>('Não iniciada');
 
-const SalesScreen = () => {
+  const handleAddSale = () => {
+    const item = items.find((item) => item.id === selectedItem);
+    if (item && quantity) {
+      const saleQuantity = parseInt(quantity, 10);
+      if (saleQuantity > item.quantity) {
+        alert('Quantidade insuficiente em estoque.');
+        return;
+      }
+      addSale({
+        id: Date.now().toString(),
+        itemId: item.id,
+        quantity: saleQuantity,
+        price: item.price * saleQuantity,
+        paymentStatus,
+        productionStatus,
+      });
+      updateItemQuantity(item.id, item.quantity - saleQuantity);
+      setSelectedItem('');
+      setQuantity('');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Vendas do Dia</Text>
+      <Text style={styles.title}>Vendas</Text>
       <FlatList
-        data={salesData}
-        keyExtractor={(item) => item.id}
+        data={sales}
+        keyExtractor={(sale) => sale.id}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>{item.item}</Text>
-            <Text style={styles.itemText}>R$ {item.price.toFixed(2)}</Text>
-            <Text style={styles.itemText}>Data: {item.date}</Text>
-          </View>
+          <Text>{`Item: ${item.itemId}, Quantidade: ${item.quantity}, Total: R$ ${item.price}`}</Text>
         )}
       />
-      <Button title="Registrar Nova Venda" onPress={() => {}} />
+      <Text style={styles.subTitle}>Registrar Venda</Text>
+      <Picker
+        selectedValue={selectedItem}
+        onValueChange={(value) => setSelectedItem(value as string)}
+        style={styles.input}
+      >
+        <Picker.Item label="Selecione um item" value="" />
+        {items.map((item) => (
+          <Picker.Item key={item.id} label={item.name} value={item.id} style={styles.font} />
+        ))}
+      </Picker>
+      <TextInput
+        style={styles.input}
+        placeholder="Quantidade"
+        value={quantity}
+        onChangeText={setQuantity}
+        keyboardType="numeric"
+      />
+      <Picker
+        selectedValue={paymentStatus}
+        onValueChange={(value) => setPaymentStatus(value as 'Não pago' | '50% pago' | 'Totalmente pago')}
+        style={styles.input}
+      >
+        <Picker.Item label="Não pago" value="Não pago" style={styles.font}/>
+        <Picker.Item label="50% pago" value="50% pago" style={styles.font}/>
+        <Picker.Item label="Totalmente pago" value="Totalmente pago" style={styles.font}/>
+      </Picker>
+      <Picker
+        selectedValue={productionStatus}
+        onValueChange={(value) => setProductionStatus(value as 'Não iniciada' | 'Em produção' | 'Pronta')}
+        style={styles.input}
+      >
+        <Picker.Item label="Não iniciada" value="Não iniciada" style={styles.font}/>
+        <Picker.Item label="Em produção" value="Em produção" style={styles.font}/>
+        <Picker.Item label="Pronta" value="Pronta" style={styles.font}/>
+      </Picker>
+      <Button title="Registrar Venda" onPress={handleAddSale} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  itemContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-  itemText: {
-    fontSize: 18,
-  },
+  container: { flex: 1, padding: 16 },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  subTitle: { fontSize: 22, marginTop: 16 },
+  input: { borderWidth: 1, padding: 8, marginVertical: 8, borderRadius: 4, fontSize: 18 },
+  font: { fontSize: 18 },
 });
-
-export default SalesScreen;
