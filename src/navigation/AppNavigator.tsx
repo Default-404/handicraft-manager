@@ -1,9 +1,10 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '../screens/HomeScreen';
-import InventoryScreen from '../screens/InventoryScreen';
-import SalesScreen from '../screens/SalesScreen';
-import CashScreen from '../screens/CashScreen';
+
+import HomeScreen from '../components/Home/HomeScreen';
+import InventoryScreen from '../components/Inventory/InventoryScreen';
+import SalesScreen from '../components/Sales/SalesScreen';
+import CashScreen from '../components/Cash/CashScreen';
 
 const Tab = createBottomTabNavigator();
 

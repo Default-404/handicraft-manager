@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, Button, TextInput, StyleSheet } from 'react-native';
+
 import { Picker } from '@react-native-picker/picker';
-import { useSales } from '../context/SalesContext';
-import { useInventory } from '../context/InventoryContext';
+
+import { useSales } from '../../context/SalesContext';
+import { useInventory } from '../../context/InventoryContext';
+import { Sale } from '../../types/sales';
+import { updateItemQuantityDB } from '../../utils/database';
 
 export default function SalesScreen() {
   const { sales, addSale } = useSales();
@@ -21,15 +25,21 @@ export default function SalesScreen() {
         alert('Quantidade insuficiente em estoque.');
         return;
       }
-      addSale({
+
+      const newSale: Sale = {
         id: Date.now().toString(),
         itemId: item.id,
         quantity: saleQuantity,
         price: item.price * saleQuantity,
         paymentStatus,
         productionStatus,
-      });
-      updateItemQuantity(item.id, item.quantity - saleQuantity);
+      };
+      
+      const updatedQuantity = item.quantity - saleQuantity;
+      
+      addSale(newSale);
+      updateItemQuantity(item.id, updatedQuantity);
+      updateItemQuantityDB(item.id, updatedQuantity);
       setSelectedItem('');
       setQuantity('');
     }

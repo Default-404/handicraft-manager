@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, TextInput, Button, StyleSheet } from 'react-native';
-import { useInventory } from '../context/InventoryContext';
+
+import { useInventory } from '../../context/InventoryContext';
+import { InventoryItem } from '../../types/inventory';
 
 export default function InventoryScreen() {
   const { items, addItem } = useInventory();
@@ -10,17 +12,21 @@ export default function InventoryScreen() {
 
   const handleAddItem = () => {
     if (name && quantity && price) {
-      addItem({
+      
+      const newItem: InventoryItem = {
         id: Date.now().toString(),
         name,
         quantity: parseInt(quantity, 10),
         price: parseFloat(price),
-      });
+      };
+      
+      addItem(newItem);
       setName('');
       setQuantity('');
       setPrice('');
     }
   };
+  
 
   return (
     <View style={styles.container}>

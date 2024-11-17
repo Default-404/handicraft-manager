@@ -1,14 +1,7 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 
-type Sale = {
-  id: string;
-  itemId: string;
-  quantity: number;
-  price: number;
-  paymentStatus: 'Não pago' | '50% pago' | 'Totalmente pago';
-  productionStatus: 'Não iniciada' | 'Em produção' | 'Pronta';
-  dueDate?: string;
-};
+import { Sale } from '../types/sales';
+import { getSales, addSaleDB } from '../utils/database';
 
 type SalesContextType = {
   sales: Sale[];
@@ -21,8 +14,13 @@ const SalesContext = createContext<SalesContextType | undefined>(undefined);
 export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sales, setSales] = useState<Sale[]>([]);
 
+  useEffect(() => {
+    getSales((fetchedSales) => setSales(fetchedSales));
+  }, []);
+
   const addSale = (sale: Sale) => {
-    setSales([...sales, sale]);
+    setSales((prevSales) => [...prevSales, sale]);
+    addSaleDB(sale);
   };
 
   const updateSaleStatus = (id: string, paymentStatus: Sale['paymentStatus'], productionStatus: Sale['productionStatus']) => {

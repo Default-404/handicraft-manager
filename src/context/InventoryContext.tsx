@@ -1,11 +1,7 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 
-type InventoryItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-};
+import { InventoryItem } from '../types/inventory';
+import { getInventoryItems, addInventoryItem } from '../utils/database';
 
 type InventoryContextType = {
   items: InventoryItem[];
@@ -18,8 +14,13 @@ const InventoryContext = createContext<InventoryContextType | undefined>(undefin
 export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
 
+  useEffect(() => {
+    getInventoryItems((fetchedItems) => setItems(fetchedItems));
+  }, []);
+
   const addItem = (item: InventoryItem) => {
-    setItems([...items, item]);
+    setItems((prevItems) => [...prevItems, item]);
+    addInventoryItem(item);
   };
 
   const updateItemQuantity = (id: string, quantity: number) => {
