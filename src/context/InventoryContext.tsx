@@ -1,12 +1,18 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-import { InventoryItem } from '../types/inventory';
-import { getInventoryItems, addInventoryItem } from '../utils/database';
+import { InventoryItem } from '../types/types';
+import { 
+  getInventoryItemsDatabase,
+  addInventoryItemDatabase,
+  updateInventoryItemDatabase,
+  deleteInventoryItemDatabase,
+} from '../utils/database';
 
 type InventoryContextType = {
   items: InventoryItem[];
-  addItem: (item: InventoryItem) => void;
-  updateItemQuantity: (id: string, quantity: number) => void;
+  addInventoryItem: (item: InventoryItem) => void;
+  updateInventoryItem: (item: InventoryItem) => void;
+  deleteInventoryItem: (id: string) => void;
 };
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -15,22 +21,28 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [items, setItems] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
-    getInventoryItems((fetchedItems) => setItems(fetchedItems));
+    getInventoryItemsDatabase((fetchedItems) => setItems(fetchedItems));
   }, []);
 
-  const addItem = (item: InventoryItem) => {
+  const addInventoryItem = (item: InventoryItem) => {
     setItems((prevItems) => [...prevItems, item]);
-    addInventoryItem(item);
+    addInventoryItemDatabase(item);
   };
 
-  const updateItemQuantity = (id: string, quantity: number) => {
+  const updateInventoryItem = (item: InventoryItem) => {
     setItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prevItems.map((i) => (i.id === item.id ? item : i))
     );
+    updateInventoryItemDatabase(item);
+  };
+
+  const deleteInventoryItem = (id: string) => {
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    deleteInventoryItemDatabase(id);
   };
 
   return (
-    <InventoryContext.Provider value={{ items, addItem, updateItemQuantity }}>
+    <InventoryContext.Provider value={{ items, addInventoryItem, updateInventoryItem, deleteInventoryItem }}>
       {children}
     </InventoryContext.Provider>
   );

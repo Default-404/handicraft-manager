@@ -5,12 +5,11 @@ import { Picker } from '@react-native-picker/picker';
 
 import { useSales } from '../../context/SalesContext';
 import { useInventory } from '../../context/InventoryContext';
-import { Sale } from '../../types/sales';
-import { updateItemQuantityDB } from '../../utils/database';
+import { SalesItem } from '../../types/types';
 
 export default function SalesScreen() {
   const { sales, addSale } = useSales();
-  const { items, updateItemQuantity } = useInventory();
+  const { items } = useInventory();
   const [selectedItem, setSelectedItem] = useState('');
   const [quantity, setQuantity] = useState('');
   
@@ -26,7 +25,7 @@ export default function SalesScreen() {
         return;
       }
 
-      const newSale: Sale = {
+      const newSale: SalesItem = {
         id: Date.now().toString(),
         itemId: item.id,
         quantity: saleQuantity,
@@ -38,8 +37,6 @@ export default function SalesScreen() {
       const updatedQuantity = item.quantity - saleQuantity;
       
       addSale(newSale);
-      updateItemQuantity(item.id, updatedQuantity);
-      updateItemQuantityDB(item.id, updatedQuantity);
       setSelectedItem('');
       setQuantity('');
     }

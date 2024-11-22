@@ -1,29 +1,29 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-import { Sale } from '../types/sales';
+import { SalesItem } from '../types/types';
 import { getSales, addSaleDB } from '../utils/database';
 
 type SalesContextType = {
-  sales: Sale[];
-  addSale: (sale: Sale) => void;
-  updateSaleStatus: (id: string, paymentStatus: Sale['paymentStatus'], productionStatus: Sale['productionStatus']) => void;
+  sales: SalesItem[];
+  addSale: (sale: SalesItem) => void;
+  updateSaleStatus: (id: string, paymentStatus: SalesItem['paymentStatus'], productionStatus: SalesItem['productionStatus']) => void;
 };
 
 const SalesContext = createContext<SalesContextType | undefined>(undefined);
 
 export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sales, setSales] = useState<Sale[]>([]);
+  const [sales, setSales] = useState<SalesItem[]>([]);
 
   useEffect(() => {
     getSales((fetchedSales) => setSales(fetchedSales));
   }, []);
 
-  const addSale = (sale: Sale) => {
+  const addSale = (sale: SalesItem) => {
     setSales((prevSales) => [...prevSales, sale]);
     addSaleDB(sale);
   };
 
-  const updateSaleStatus = (id: string, paymentStatus: Sale['paymentStatus'], productionStatus: Sale['productionStatus']) => {
+  const updateSaleStatus = (id: string, paymentStatus: SalesItem['paymentStatus'], productionStatus: SalesItem['productionStatus']) => {
     setSales((prevSales) =>
       prevSales.map((sale) =>
         sale.id === id ? { ...sale, paymentStatus, productionStatus } : sale
