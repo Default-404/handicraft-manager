@@ -11,6 +11,7 @@ export default function InventoryScreen() {
   const [price, setPrice] = useState('');
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAddInventoryItem = () => {
     if (name && quantity && price) {
@@ -26,6 +27,9 @@ export default function InventoryScreen() {
       setName('');
       setQuantity('');
       setPrice('');
+      setModalVisible(false);
+    } else {
+      Alert.alert('Erro', 'Todos os campos devem ser preenchidos.');
     }
   };
 
@@ -34,6 +38,7 @@ export default function InventoryScreen() {
     setName(item.name);
     setQuantity(item.quantity.toString());
     setPrice(item.price.toString());
+    setIsAdding(false);
     setModalVisible(true);
   };
 
@@ -48,6 +53,8 @@ export default function InventoryScreen() {
       updateInventoryItem(updatedItem);
       setModalVisible(false);
       setEditingItem(null);
+    } else {
+      Alert.alert('Erro', 'Todos os campos devem ser preenchidos.');
     }
   };
 
@@ -60,6 +67,15 @@ export default function InventoryScreen() {
         { text: 'Excluir', style: 'destructive', onPress: () => deleteInventoryItem(id) },
       ]
     );
+  };
+
+  const openAddModal = () => {
+    setName('');
+    setQuantity('');
+    setPrice('');
+    setEditingItem(null);
+    setIsAdding(true);
+    setModalVisible(true);
   };
   
 
@@ -89,33 +105,16 @@ export default function InventoryScreen() {
           </View>
         )}
       />
-      <Text style={styles.subTitle}>Adicionar Item</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Nome"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Quantidade"
-        value={quantity}
-        onChangeText={setQuantity}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Preço"
-        value={price}
-        onChangeText={setPrice}
-        keyboardType="numeric"
-      />
-      <Button title="Adicionar" onPress={handleAddInventoryItem} />
+      <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
+        <Text style={styles.addButtonText}>+ Adicionar Item</Text>
+      </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.title}>Editar Item</Text>
+            <Text style={styles.title}>
+              {isAdding ? 'Adicionar Novo Item' : 'Editar Item'}
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Nome"
@@ -136,7 +135,10 @@ export default function InventoryScreen() {
               onChangeText={setPrice}
               keyboardType="numeric"
             />
-            <Button title="Salvar" onPress={saveEditItem} />
+            <Button
+              title={isAdding ? 'Adicionar' : 'Salvar'}
+              onPress={isAdding ? handleAddInventoryItem : saveEditItem}
+            />
             <Button
               title="Cancelar"
               onPress={() => {
@@ -179,4 +181,12 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
   },
+  addButton: {
+    backgroundColor: 'green',
+    padding: 12,
+    marginTop: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  addButtonText: { color: 'white', fontWeight: 'bold' },
 });
