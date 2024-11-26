@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, FlatList, TextInput, StyleSheet, Alert, TouchableOpacity, Modal } from 'react-native';
+
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useInventory } from '../../context/InventoryContext';
 import { InventoryItem } from '../../types/types';
 
-export default function InventoryScreen() {
+const InventoryScreen = () => {
   const { items, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useInventory();
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -61,10 +63,17 @@ export default function InventoryScreen() {
   const handleDeleteItem = (id: string) => {
     Alert.alert(
       'Confirmar exclusão',
-      'Você tem certeza de que deseja excluir este item?',
+      'Você tem certeza de que deseja excluir este material?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Excluir', style: 'destructive', onPress: () => deleteInventoryItem(id) },
+        { text: 'Excluir', 
+          style: 'destructive', 
+          onPress: () => {
+            deleteInventoryItem(id);
+            setModalVisible(false);
+            setEditingItem(null);
+          },
+        },
       ]
     );
   };
@@ -81,40 +90,48 @@ export default function InventoryScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Inventário</Text>
       <FlatList
         data={items}
+        showsVerticalScrollIndicator={false}
+        overScrollMode="never"
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>{`${item.name} - Quantidade: ${item.quantity}, Preço: R$ ${item.price}`}</Text>
-            <View style={styles.buttonsContainer}>
+            <View style={styles.itemContainerRow}>
+              <View>
+                <Text style={styles.itemTextName}>{item.name}</Text>
+                <Text style={styles.itemText}>Quantidade: {item.quantity}</Text>
+                <Text style={styles.itemText}>Preço Unitário: R$ {item.price.toFixed(2)}</Text>
+              </View>
               <TouchableOpacity
-                style={styles.editButton}
                 onPress={() => handleEditItem(item)}
               >
-                <Text style={styles.buttonText}>Editar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteItem(item.id)}
-              >
-                <Text style={styles.buttonText}>Excluir</Text>
+                <Ionicons name="ellipsis-vertical" size={24} color="black" />
               </TouchableOpacity>
             </View>
           </View>
         )}
       />
-      <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-        <Text style={styles.addButtonText}>+ Adicionar Item</Text>
+      <TouchableOpacity style={styles.button} onPress={openAddModal}>
+        <Text style={styles.buttonText}>+ Adicionar Material</Text>
       </TouchableOpacity>
 
       <Modal visible={modalVisible} transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.title}>
-              {isAdding ? 'Adicionar Novo Item' : 'Editar Item'}
-            </Text>
+            <View style={styles.itemContainerRow}>
+              <Text style={styles.title}>
+                {isAdding ? 'Adicionar novo material' : 'Editar material'}
+              </Text>
+              {!isAdding && editingItem && (
+                <TouchableOpacity
+                  style={styles.trash}
+                  onPress={() => handleDeleteItem(editingItem.id)}
+                >
+                  <Ionicons name="trash" size={24} color="black" />
+                </TouchableOpacity>
+              )}
+            </View>
             <TextInput
               style={styles.input}
               placeholder="Nome"
@@ -130,22 +147,24 @@ export default function InventoryScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Preço"
+              placeholder="Preço Unitário"
               value={price}
               onChangeText={setPrice}
               keyboardType="numeric"
             />
-            <Button
-              title={isAdding ? 'Adicionar' : 'Salvar'}
-              onPress={isAdding ? handleAddInventoryItem : saveEditItem}
-            />
-            <Button
-              title="Cancelar"
-              onPress={() => {
+            <TouchableOpacity style={styles.button} onPress={isAdding ? handleAddInventoryItem : saveEditItem}>
+              <Text style={styles.buttonText}>
+                {isAdding ? 'Adicionar' : 'Salvar'} 
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => {
                 setModalVisible(false);
                 setEditingItem(null);
-              }}
-            />
+              }}>
+              <Text style={styles.buttonText}>
+                Cancelar 
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -154,21 +173,42 @@ export default function InventoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  subTitle: { fontSize: 18, marginTop: 16 },
-  input: { borderWidth: 1, padding: 8, marginVertical: 8, borderRadius: 4 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#ffffff',
+  },
   itemContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  itemContainerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 8,
   },
-  itemText: { flex: 1 },
-  buttonsContainer: { flexDirection: 'row' },
-  editButton: { backgroundColor: 'blue', padding: 8, marginHorizontal: 4 },
-  deleteButton: { backgroundColor: 'red', padding: 8, marginHorizontal: 4 },
-  buttonText: { color: 'white' },
+  itemText: {
+    fontSize: 18,
+  },
+  itemTextName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  trash: {
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1, 
+    padding: 8, 
+    marginVertical: 8, 
+    borderRadius: 4,
+  },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -177,16 +217,22 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     padding: 16,
     borderRadius: 8,
   },
-  addButton: {
-    backgroundColor: 'green',
+  button: {
+    backgroundColor: '#850B00',
     padding: 12,
-    marginTop: 16,
+    marginTop: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
-  addButtonText: { color: 'white', fontWeight: 'bold' },
+  buttonText: { 
+    color: '#ffffff', 
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
+
+export default InventoryScreen;
