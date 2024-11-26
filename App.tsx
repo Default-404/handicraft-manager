@@ -7,6 +7,7 @@ import { initializeDatabase } from './src/utils/database';
 import AppNavigator from './src/navigation/AppNavigator';
 import { InventoryProvider } from './src/context/InventoryContext';
 import { SalesProvider } from './src/context/SalesContext';
+import { ProductsProvider } from './src/context/ProductsContext';
 
 export default function App() {
   useEffect(() => {
@@ -15,11 +16,13 @@ export default function App() {
   
   return (
     <InventoryProvider>
-      <SalesProvider>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
-      </SalesProvider>
+      <ProductsProvider>
+        <SalesProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </SalesProvider>
+      </ProductsProvider>
     </InventoryProvider>
   );
 }
