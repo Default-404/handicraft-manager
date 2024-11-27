@@ -9,7 +9,7 @@ import { InventoryProvider } from './src/context/InventoryContext';
 import { SalesProvider } from './src/context/SalesContext';
 import { ProductsProvider } from './src/context/ProductsContext';
 
-export default function App() {
+const App = () => {
   useEffect(() => {
     initializeDatabase();
   }, []);
@@ -26,3 +26,5 @@ export default function App() {
     </InventoryProvider>
   );
 }
+
+export default App;

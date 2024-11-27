@@ -7,7 +7,7 @@ import { useSales } from '../../context/SalesContext';
 import { useInventory } from '../../context/InventoryContext';
 import { SalesItem } from '../../types/types';
 
-export default function SalesScreen() {
+const SalesScreen = () => {
   const { sales, addSale } = useSales();
   const { items } = useInventory();
   const [selectedItem, setSelectedItem] = useState('');
@@ -100,3 +100,5 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, padding: 8, marginVertical: 8, borderRadius: 4, fontSize: 18 },
   font: { fontSize: 18 },
 });
+
+export default SalesScreen;
