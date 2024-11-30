@@ -330,14 +330,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   button: {
-    backgroundColor: '#850B00',
+    backgroundColor: '#0066FF',
     padding: 12,
     marginTop: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
   addbutton: {
-    backgroundColor: '#850B00',
+    backgroundColor: '#0066FF',
     padding: 8,
     borderRadius: 8,
     alignItems: 'center',
