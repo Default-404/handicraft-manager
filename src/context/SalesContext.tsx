@@ -1,12 +1,18 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 import { SalesItem } from '../types/types';
-import { getSales, addSaleDB } from '../utils/database';
+import { 
+  getSalesDatabase, 
+  addSaleDatabase, 
+  updateSaleDatabase, 
+  deleteSaleDatabase, 
+} from '../utils/database';
 
 type SalesContextType = {
   sales: SalesItem[];
-  addSale: (sale: SalesItem) => void;
-  updateSaleStatus: (id: string, paymentStatus: SalesItem['paymentStatus'], productionStatus: SalesItem['productionStatus']) => void;
+  addSale: (sale: Omit<SalesItem, 'id'>) => void;
+  updateSale: (sale: SalesItem) => void;
+  deleteSale: (saleId: string) => void;
 };
 
 const SalesContext = createContext<SalesContextType | undefined>(undefined);
@@ -15,24 +21,33 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [sales, setSales] = useState<SalesItem[]>([]);
 
   useEffect(() => {
-    getSales((fetchedSales) => setSales(fetchedSales));
+    getSalesDatabase((fetchedSales) => setSales(fetchedSales));
   }, []);
 
-  const addSale = (sale: SalesItem) => {
-    setSales((prevSales) => [...prevSales, sale]);
-    addSaleDB(sale);
+  const addSale = (saleData: Omit<SalesItem, 'id'>) => {
+    const newSale: SalesItem = {
+      ...saleData,
+      id: Date.now().toString(),
+    };
+    setSales((prevSales) => [...prevSales, newSale]);
+    addSaleDatabase(newSale);
   };
 
-  const updateSaleStatus = (id: string, paymentStatus: SalesItem['paymentStatus'], productionStatus: SalesItem['productionStatus']) => {
+  const updateSale = (updatedSale: SalesItem) => {
     setSales((prevSales) =>
-      prevSales.map((sale) =>
-        sale.id === id ? { ...sale, paymentStatus, productionStatus } : sale
-      )
+      prevSales.map((sale) => (sale.id === updatedSale.id ? updatedSale : sale))
     );
+    updateSaleDatabase(updatedSale);
   };
+
+  const deleteSale = (saleId: string) => {
+    setSales((prevSales) => prevSales.filter((sale) => sale.id !== saleId));
+    deleteSaleDatabase(saleId);
+  };
+  
 
   return (
-    <SalesContext.Provider value={{ sales, addSale, updateSaleStatus }}>
+    <SalesContext.Provider value={{ sales, addSale, updateSale, deleteSale }}>
       {children}
     </SalesContext.Provider>
   );

@@ -28,20 +28,29 @@ export const initializeDatabase = () => {
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS sales (
         id TEXT PRIMARY KEY,
-        item_id TEXT NOT NULL,
-        quantity INTEGER NOT NULL,
-        price REAL NOT NULL,
+        total_price REAL NOT NULL,
         payment_status TEXT NOT NULL,
         production_status TEXT NOT NULL,
-        due_date TEXT,
-        FOREIGN KEY (item_id) REFERENCES products (id)
+        due_date TEXT
+      );`
+    );
+
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS sales_products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sale_id TEXT NOT NULL,
+        product_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        price REAL NOT NULL,
+        FOREIGN KEY (sale_id) REFERENCES sales (id),
+        FOREIGN KEY (product_id) REFERENCES products (id)
       );`
     );
     
   });
 };
 
-
+//Materiais
 export const addInventoryItemDatabase = (item: InventoryItem) => {
   database.transaction((tx) => {
     tx.executeSql(
@@ -76,7 +85,7 @@ export const deleteInventoryItemDatabase = (id: string) => {
   });
 };
 
-
+//Produtos
 export const addProductsItemDatabase = (product: ProductsItem) => {
   database.transaction((tx) => {
     tx.executeSql(
@@ -111,42 +120,89 @@ export const deleteProductsItemDatabase = (id: string) => {
   });
 };
 
-
-export const addSaleDB = (sale: SalesItem) => {
+//Vendas
+export const addSaleDatabase = (sale: SalesItem) => {
   database.transaction((tx) => {
     tx.executeSql(
-      'INSERT INTO sales (id, item_id, quantity, price, payment_status, production_status, due_date) VALUES (?, ?, ?, ?, ?, ?, ?);',
-      [
-        sale.id,
-        sale.itemId,
-        sale.quantity,
-        sale.price,
-        sale.paymentStatus,
-        sale.productionStatus,
-        sale.dueDate || null,
-      ]
+      'INSERT INTO sales (id, total_price, payment_status, production_status, due_date) VALUES (?, ?, ?, ?, ?);',
+      [sale.id, sale.price, sale.paymentStatus, sale.productionStatus, sale.dueDate || null],
+      (_, result) => {
+        sale.products.forEach((product) => {
+          tx.executeSql(
+            'INSERT INTO sales_products (sale_id, product_id, quantity, price) VALUES (?, ?, ?, ?);',
+            [sale.id, product.itemId, product.quantity, product.price]
+          );
+        });
+      },
     );
   });
 };
 
-export const getSales = (callback: (sales: SalesItem[]) => void) => {
+export const getSalesDatabase = (callback: (sales: SalesItem[]) => void) => {
   database.transaction((tx) => {
     tx.executeSql(
-      'SELECT * FROM sales;',
+      `SELECT s.id, s.total_price, s.payment_status, s.production_status, s.due_date, 
+              sp.product_id, sp.quantity, sp.price, p.name
+       FROM sales s
+       LEFT JOIN sales_products sp ON s.id = sp.sale_id
+       LEFT JOIN products p ON sp.product_id = p.id;`,
       [],
-      (_, { rows }) => callback(rows._array as SalesItem[])
+      (_, { rows }) => {
+        const groupedSales = rows._array.reduce((acc, row) => {
+          const existingSale = acc.find((sale: { id: any; }) => sale.id === row.id);
+          const product = {
+            itemId: row.product_id,
+            name: row.name,
+            quantity: row.quantity,
+            price: row.price,
+          };
+          if (existingSale) {
+            existingSale.products.push(product);
+          } else {
+            acc.push({
+              id: row.id,
+              price: row.total_price,
+              paymentStatus: row.payment_status,
+              productionStatus: row.production_status,
+              dueDate: row.due_date,
+              products: [product],
+            });
+          }
+          return acc;
+        }, []);
+        callback(groupedSales as SalesItem[]);
+      }
     );
   });
 };
 
-export const updateItemQuantityDB = (itemId: string, newQuantity: number) => {
+export const updateSaleDatabase = (sale: SalesItem) => {
   database.transaction((tx) => {
     tx.executeSql(
-      'UPDATE inventory SET quantity = ? WHERE id = ?',
-      [newQuantity, itemId]
+      'UPDATE sales SET total_price = ?, payment_status = ?, production_status = ?, due_date = ? WHERE id = ?',
+      [sale.price, sale.paymentStatus, sale.productionStatus, sale.dueDate || null, sale.id]
+    );
+    tx.executeSql(
+      'DELETE FROM sales_products WHERE sale_id = ?',
+      [sale.id],
+      () => {
+        sale.products.forEach((product) => {
+          tx.executeSql(
+            'INSERT INTO sales_products (sale_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
+            [sale.id, product.itemId, product.quantity, product.price]
+          );
+        });
+      },
     );
   });
-}
+};
+
+export const deleteSaleDatabase = (saleId: string) => {
+  database.transaction((tx) => {
+    tx.executeSql('DELETE FROM sales WHERE id = ?', [saleId]);
+    tx.executeSql('DELETE FROM sales_products WHERE sale_id = ?', [saleId]);
+  });
+};
 
 
 export const deleteTables = () => {
