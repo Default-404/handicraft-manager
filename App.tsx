@@ -8,6 +8,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { InventoryProvider } from './src/context/InventoryContext';
 import { SalesProvider } from './src/context/SalesContext';
 import { ProductsProvider } from './src/context/ProductsContext';
+import { CashProvider } from './src/context/CashContext';
 
 const App = () => {
   useEffect(() => {
@@ -18,9 +19,11 @@ const App = () => {
     <InventoryProvider>
       <ProductsProvider>
         <SalesProvider>
-          <NavigationContainer>
-            <AppNavigator />
-          </NavigationContainer>
+          <CashProvider>
+            <NavigationContainer>
+              <AppNavigator />
+            </NavigationContainer>
+          </CashProvider>
         </SalesProvider>
       </ProductsProvider>
     </InventoryProvider>

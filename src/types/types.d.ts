@@ -25,3 +25,10 @@ export type SalesItem = {
     price: number;
   }[];
 };
+
+export type CashItem = {
+  id: number;
+  type: 'Entrada' | 'Saída';
+  amount: number;
+  date: string;
+};

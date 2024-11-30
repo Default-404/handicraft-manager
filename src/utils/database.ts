@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-import { InventoryItem, SalesItem, ProductsItem } from '../types/types';
+import { InventoryItem, SalesItem, ProductsItem, CashItem } from '../types/types';
 
 const database = SQLite.openDatabase('handicraft_manager.database');
 
@@ -44,6 +44,15 @@ export const initializeDatabase = () => {
         price REAL NOT NULL,
         FOREIGN KEY (sale_id) REFERENCES sales (id),
         FOREIGN KEY (product_id) REFERENCES products (id)
+      );`
+    );
+    
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS cash (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        amount REAL NOT NULL,
+        date TEXT NOT NULL
       );`
     );
     
@@ -204,7 +213,42 @@ export const deleteSaleDatabase = (saleId: string) => {
   });
 };
 
+//Caixa
+export const addCashItemDatabase = (transaction: Omit<CashItem, 'id'>) => {
+  database.transaction((tx) => {
+    tx.executeSql(
+      'INSERT INTO cash (type, amount, date) VALUES (?, ?, ?)',
+      [transaction.type, transaction.amount, transaction.date],
+    );
+  });
+};
 
+export const getCashItemsDatabase = (callback: (transactions: CashItem[]) => void ) => {
+  database.transaction((tx) => {
+    tx.executeSql(
+      'SELECT * FROM cash ORDER BY date DESC',
+      [],
+      (_, { rows }) => callback(rows._array as CashItem[]),
+    );
+  });
+};
+
+export const updateCashItemDatabase = (transaction: CashItem) => {
+  database.transaction((tx) => {
+    tx.executeSql(
+      'UPDATE cash SET type = ?, amount = ?, date = ? WHERE id = ?',
+      [transaction.type, transaction.amount, transaction.date, transaction.id],
+    );
+  });
+};
+
+export const deleteCashItemDatabase = (id: number) => {
+  database.transaction((tx) => {
+    tx.executeSql('DELETE FROM cash WHERE id = ?', [id]);
+  });
+};
+
+//Deletar tabelas
 export const deleteTables = () => {
   database.transaction((tx) => {
     tx.executeSql('DROP TABLE IF EXISTS inventory;', [], 
@@ -230,9 +274,23 @@ export const deleteTables = () => {
         return false;
       }
     );
+
+    tx.executeSql('DROP TABLE IF EXISTS sales_products;', [], 
+      () => console.log('Tabela sales_products deletada com sucesso.'),
+      (_, error) => {
+        console.error('Erro ao deletar a tabela sales_products:', error);
+        return false;
+      }
+    );
+
+    tx.executeSql('DROP TABLE IF EXISTS cash;', [], 
+      () => console.log('Tabela cash deletada com sucesso.'),
+      (_, error) => {
+        console.error('Erro ao deletar a tabela cash:', error);
+        return false;
+      }
+    );
   });
 };
-
-
 
 export default database;
