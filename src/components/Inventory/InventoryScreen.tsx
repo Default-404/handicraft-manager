@@ -208,6 +208,8 @@ const styles = StyleSheet.create({
     padding: 8, 
     marginVertical: 8, 
     borderRadius: 4,
+    borderColor: '#ccc',
+    fontSize: 18,
   },
   modalContainer: {
     flex: 1,
