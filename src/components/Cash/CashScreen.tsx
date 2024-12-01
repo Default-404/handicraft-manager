@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useCash } from '../../context/CashContext';
 import { CashItem } from '../../types/types';
+import { calculateBalance } from '../../utils/calculateBalance';
 
 const CashScreen = () => {
   const { transactions, addTransaction, updateTransaction, deleteTransaction } = useCash();
@@ -76,18 +77,7 @@ const CashScreen = () => {
     setModalVisible(true);
   };
 
-  const calculateBalance = () => {
-    return transactions.reduce((balance, transaction) => {
-      if (transaction.type === 'Entrada') {
-        return balance + transaction.amount;
-      } else if (transaction.type === 'Saída') {
-        return balance - transaction.amount;
-      }
-      return balance;
-    }, 0);
-  };
-
-  const balance = calculateBalance();
+  const balance = calculateBalance(transactions);
 
 
   return (

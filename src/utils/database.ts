@@ -248,49 +248,4 @@ export const deleteCashItemDatabase = (id: number) => {
   });
 };
 
-//Deletar tabelas
-export const deleteTables = () => {
-  database.transaction((tx) => {
-    tx.executeSql('DROP TABLE IF EXISTS inventory;', [], 
-      () => console.log('Tabela inventory deletada com sucesso.'),
-      (_, error) => {
-        console.error('Erro ao deletar a tabela inventory:', error);
-        return false;
-      }
-    );
-
-    tx.executeSql('DROP TABLE IF EXISTS products;', [], 
-      () => console.log('Tabela products deletada com sucesso.'),
-      (_, error) => {
-        console.error('Erro ao deletar a tabela products:', error);
-        return false;
-      }
-    );
-
-    tx.executeSql('DROP TABLE IF EXISTS sales;', [], 
-      () => console.log('Tabela sales deletada com sucesso.'),
-      (_, error) => {
-        console.error('Erro ao deletar a tabela sales:', error);
-        return false;
-      }
-    );
-
-    tx.executeSql('DROP TABLE IF EXISTS sales_products;', [], 
-      () => console.log('Tabela sales_products deletada com sucesso.'),
-      (_, error) => {
-        console.error('Erro ao deletar a tabela sales_products:', error);
-        return false;
-      }
-    );
-
-    tx.executeSql('DROP TABLE IF EXISTS cash;', [], 
-      () => console.log('Tabela cash deletada com sucesso.'),
-      (_, error) => {
-        console.error('Erro ao deletar a tabela cash:', error);
-        return false;
-      }
-    );
-  });
-};
-
 export default database;

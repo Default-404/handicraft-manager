@@ -20,6 +20,7 @@ const AppNavigator = () => {
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
           ),
+          headerShown: false
         }}
       />
       <Tab.Screen
